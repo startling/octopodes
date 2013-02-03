@@ -15,7 +15,7 @@ data Node a
   deriving (Eq, Ord, Show, Typeable)
 
 -- | Traverse both kinds of @'Node' a@.
-node :: Applicative f
+node :: Functor f
   => (s -> f t)
   -> (Octree s -> f (Octree t))
   -> Node s -> f (Node t)
