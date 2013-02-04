@@ -11,8 +11,6 @@ import Control.Applicative
 -- pockets
 import Data.Octree
 import Data.Octree.Lens
--- lens
-import Control.Lens
 
 -- | An index into the immediate children of a @'Halftree' a@.
 data Quadrant
@@ -40,10 +38,12 @@ toLens d = case d of
 -- | Simplify some @'Octree' a@ into a leaf when all of its
 -- children are equal leaves.
 shallowSimplify :: Eq t => Octree t -> Node t
-shallowSimplify ot = let (n : ns) = ot ^.. halftrees . nodes in
+shallowSimplify ot = let (n : ns) = oToList ot in
   if all isLeaf (n : ns) && all (== n) ns
     then n else Branch ot where
       isLeaf (Leaf _) = True; isLeaf (Branch _) = False;
+      oToList (Octree a b) = hToList a ++ hToList b
+      hToList (Halftree a b c d) = [a, b, c, d]
 
 -- | Widen a 'Leaf' into a 'Branch' of equal leaves.
 widen :: Node a -> Octree a
