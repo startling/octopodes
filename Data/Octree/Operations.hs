@@ -2,12 +2,12 @@
 module Data.Octree.Operations
   ( Quadrant (..)
   , Octant (..)
-  , seePath
-  , setPath
   , shallowSimplify
-  , widen ) where
+  , widen
+  , path ) where
  -- base
 import Data.Typeable
+import Control.Applicative
 -- pockets
 import Data.Octree
 import Data.Octree.Lens
@@ -27,19 +27,15 @@ data Octant = Near Quadrant | Far Quadrant
   deriving (Eq, Show, Ord, Typeable)
 
 -- | Turn an 'Octant' into a lens.
-toLens :: Octant -> Simple Lens (Octree a) (Node a)
+toLens :: Functor f
+  => Octant
+  -> (Node a -> f (Node a)) -> Octree a -> f (Octree a)
 toLens d = case d of
   (Near n) -> _near.toLens' n;
   (Far f) -> _far.toLens' f; where 
     toLens' x = case x of
       Northeast -> _northeast; Northwest -> _northwest;
       Southeast -> _southeast; Southwest -> _southwest;
-
--- | See the value at a given 'Octant' path.
-seePath :: [Octant] -> Node a -> Either a (Octree a)
-seePath (p:ps) (Branch s) = seePath ps $ s ^. toLens p
-seePath [] (Branch x) = Right x
-seePath _ (Leaf x) = Left x
 
 -- | Simplify some @'Octree' a@ into a leaf when all of its
 -- children are equal leaves.
@@ -54,7 +50,12 @@ widen :: Node a -> Octree a
 widen (Branch b) = b
 widen t@(Leaf _) = Octree ht ht where ht = Halftree t t t t
 
--- | Set to some path of 'Octant's in a @'Node' a@.
-setPath :: Eq a => [Octant] -> a -> Node a -> Node a
-setPath [] v _ = Leaf v
-setPath (p : ps) n o = shallowSimplify $ widen o & toLens p %~ setPath ps n
+-- | A lens onto the value at some 'Octant' path into some @'Octree' a@.
+--
+-- Note that this may not be a legal lens for unsimplified octrees.
+path :: (Eq a, Functor f)
+  => [Octant]
+  -> (Maybe a -> f a) -> Node a -> f (Node a)
+path (p : ps) f n = shallowSimplify <$> (toLens p . path ps) f (widen n)
+path [] f (Leaf a) = Leaf <$> f (Just a)
+path [] f (Branch _) = Leaf <$> f Nothing
