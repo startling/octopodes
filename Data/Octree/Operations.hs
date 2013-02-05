@@ -14,7 +14,7 @@ import Control.Applicative
 -- transformers
 import Data.Functor.Identity
 -- pockets
-import Data.Octree
+import Data.Octree.Internal
 
 -- | An index into the immediate children of a @'Halftree' a@.
 data Quadrant
@@ -53,20 +53,6 @@ octant d = case d of
       Southeast -> \f (Halftree a b c d) -> (\x -> Halftree a b x d) <$> f c
       Southwest -> \f (Halftree a b c d) -> (\x -> Halftree a b c x) <$> f d
 
--- | Simplify some @'Octree' a@ into a leaf when all of its
--- children are equal leaves.
-shallowSimplify :: Eq t => Octree t -> Node t
-shallowSimplify ot = let (n : ns) = oToList ot in
-  if all isLeaf (n : ns) && all (== n) ns
-    then n else Branch ot where
-      isLeaf (Leaf _) = True; isLeaf (Branch _) = False;
-      oToList (Octree a b) = hToList a ++ hToList b
-      hToList (Halftree a b c d) = [a, b, c, d]
-
--- | Widen a 'Leaf' into a 'Branch' of equal leaves.
-widen :: Node a -> Octree a
-widen (Branch b) = b
-widen t@(Leaf _) = Octree ht ht where ht = Halftree t t t t
 
 -- | A lens onto the value at some 'Octant' path into some @'Octree' a@.
 --

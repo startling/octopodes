@@ -1,8 +1,8 @@
 {-# Language DeriveDataTypeable #-}
 {-# Language TemplateHaskell #-}
-module Data.Octree where
+module Data.Octree.Internal where
 -- base
-import Data.Foldable
+import Data.Foldable (Foldable(..))
 import Data.Traversable
 import Data.Typeable
 import Control.Applicative
@@ -83,3 +83,18 @@ instance Foldable Octree where
 
 instance Traversable Octree where
   traverse = halftrees . traverse
+
+-- | Simplify some @'Octree' a@ into a leaf when all of its
+-- children are equal leaves.
+shallowSimplify :: Eq t => Octree t -> Node t
+shallowSimplify ot = let (n : ns) = oToList ot in
+  if all isLeaf (n : ns) && all (== n) ns
+    then n else Branch ot where
+      isLeaf (Leaf _) = True; isLeaf (Branch _) = False;
+      oToList (Octree a b) = hToList a ++ hToList b
+      hToList (Halftree a b c d) = [a, b, c, d]
+
+-- | Widen a 'Leaf' into a 'Branch' of equal leaves.
+widen :: Node a -> Octree a
+widen (Branch b) = b
+widen t@(Leaf _) = Octree ht ht where ht = Halftree t t t t
