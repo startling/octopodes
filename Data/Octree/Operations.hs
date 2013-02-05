@@ -15,7 +15,6 @@ import Control.Applicative
 import Data.Functor.Identity
 -- pockets
 import Data.Octree
-import Data.Octree.Lens
 
 -- | An index into the immediate children of a @'Halftree' a@.
 data Quadrant
@@ -29,16 +28,30 @@ data Quadrant
 data Octant = Near Quadrant | Far Quadrant
   deriving (Eq, Show, Ord, Typeable)
 
--- | Turn an 'Octant' into a lens.
-toLens :: Functor f
+-- | Turn an @'Octant'@ into a lens.
+octant :: Functor f
   => Octant
   -> (Node a -> f (Node a)) -> Octree a -> f (Octree a)
-toLens d = case d of
-  (Near n) -> _near.toLens' n;
-  (Far f) -> _far.toLens' f; where 
-    toLens' x = case x of
-      Northeast -> _northeast; Northwest -> _northwest;
-      Southeast -> _southeast; Southwest -> _southwest;
+octant d = case d of
+  (Near n) -> _near.quadrant n;
+  (Far f) -> _far.quadrant f; where 
+    _near :: Functor f
+       => (Halftree a -> f (Halftree a))
+       -> Octree a -> f (Octree a)
+    _near f (Octree ne fa) = flip Octree fa <$> f ne
+    _far :: Functor f
+      => (Halftree a -> f (Halftree a))
+      -> Octree a -> f (Octree a)
+    _far f (Octree ne fa) = Octree ne <$> f fa
+    quadrant :: Functor f
+      => Quadrant
+      -> (Node a -> f (Node a))
+      -> Halftree a -> f (Halftree a)
+    quadrant x = case x of
+      Northeast -> \f (Halftree a b c d) -> (\x -> Halftree x b c d) <$> f a
+      Northwest -> \f (Halftree a b c d) -> (\x -> Halftree a x c d) <$> f b
+      Southeast -> \f (Halftree a b c d) -> (\x -> Halftree a b x d) <$> f c
+      Southwest -> \f (Halftree a b c d) -> (\x -> Halftree a b c x) <$> f d
 
 -- | Simplify some @'Octree' a@ into a leaf when all of its
 -- children are equal leaves.
@@ -61,7 +74,7 @@ widen t@(Leaf _) = Octree ht ht where ht = Halftree t t t t
 path :: (Eq a, Functor f)
   => [Octant]
   -> (Maybe a -> f a) -> Node a -> f (Node a)
-path (p : ps) f n = shallowSimplify <$> (toLens p . path ps) f (widen n)
+path (p : ps) f n = shallowSimplify <$> (octant p . path ps) f (widen n)
 path [] f (Leaf a) = Leaf <$> f (Just a)
 path [] f (Branch _) = Leaf <$> f Nothing
 

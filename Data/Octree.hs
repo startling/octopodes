@@ -67,6 +67,14 @@ halftrees :: Applicative f
   -> Octree a -> f (Octree b)
 halftrees f (Octree ne fa) = Octree <$> f ne <*> f fa
 
+-- | Traverse the self-similar children of a @'Octree' a@, given
+-- a traversal over the leaf nodes.
+plateOctree :: Applicative f
+  => (a -> f b)
+  -> (Octree a -> f (Octree b))
+  -> Octree a -> f (Octree b)
+plateOctree f = halftrees . nodes . node f
+
 instance Functor Octree where
   fmap = fmapDefault
 
@@ -75,4 +83,3 @@ instance Foldable Octree where
 
 instance Traversable Octree where
   traverse = halftrees . traverse
-
