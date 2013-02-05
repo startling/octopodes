@@ -98,3 +98,15 @@ shallowSimplify ot = let (n : ns) = oToList ot in
 widen :: Node a -> Octree a
 widen (Branch b) = b
 widen t@(Leaf _) = Octree ht ht where ht = Halftree t t t t
+
+-- | An index into the immediate children of a @'Halftree' a@.
+data Quadrant
+  = Northeast
+  | Northwest
+  | Southeast
+  | Southwest
+  deriving (Eq, Show, Ord, Typeable)
+
+-- | An index into self-similar children of an @'Octree a'@.
+data Octant = Near Quadrant | Far Quadrant
+  deriving (Eq, Show, Ord, Typeable)
