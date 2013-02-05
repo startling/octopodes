@@ -26,8 +26,8 @@ octant d = case d of
     quadrant x = case x of
       Northeast -> \f (Halftree a b c d) -> (\x -> Halftree x b c d) <$> f a
       Northwest -> \f (Halftree a b c d) -> (\x -> Halftree a x c d) <$> f b
-      Southeast -> \f (Halftree a b c d) -> (\x -> Halftree a b x d) <$> f c
-      Southwest -> \f (Halftree a b c d) -> (\x -> Halftree a b c x) <$> f d
+      Southwest -> \f (Halftree a b c d) -> (\x -> Halftree a b x d) <$> f c
+      Southeast -> \f (Halftree a b c d) -> (\x -> Halftree a b c x) <$> f d
 
 -- | A lens onto the value at some 'Octant' path into some @'Octree' a@.
 --

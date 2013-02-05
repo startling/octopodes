@@ -36,8 +36,8 @@ instance Traversable Node where
 data Halftree a = Halftree
   { northeast
   , northwest
-  , southeast
-  , southwest :: Node a }
+  , southwest
+  , southeast :: Node a }
   deriving (Eq, Ord, Show, Typeable)
 
 -- | Traverse the @'Node' a@ in a @'Halftree' a@.
