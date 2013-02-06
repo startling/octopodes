@@ -1,6 +1,6 @@
 module Data.Octree
   ( Octree
-  , Node
+  , Node (Leaf)
   , Quadrant (..)
   , Octant (..)
   , Operation (..)
