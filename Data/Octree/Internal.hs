@@ -84,18 +84,26 @@ instance Foldable Octree where
 instance Traversable Octree where
   traverse = halftrees . traverse
 
--- | Tell whether some @'Octree' a@ is simplified.
-simplified :: Eq a => Octree a -> Bool
-simplified ot = let (n : ns) = oToList ot in
+-- | Tell whether some @'Octree' a@ is shallowly simplified.
+shallowSimplified :: Eq a => Octree a -> Bool
+shallowSimplified ot = let (n : ns) = oToList ot in
   not $ all isLeaf (n : ns) && all (== n) ns where
     isLeaf (Leaf _) = True; isLeaf (Branch _) = False;
+    oToList (Octree a b) = hToList a ++ hToList b
+    hToList (Halftree a b c d) = [a, b, c, d]
+
+-- | Tell whether some @'Octree' a@ is deeply simplified.
+simplified :: Eq a => Node a -> Bool
+simplified (Leaf _) = True
+simplified (Branch ot) = shallowSimplified ot && all simplified (oToList ot)
+  where
     oToList (Octree a b) = hToList a ++ hToList b
     hToList (Halftree a b c d) = [a, b, c, d]
 
 -- | Simplify some @'Octree' a@ into a leaf when all of its
 -- children are equal leaves.
 shallowSimplify :: Eq t => Octree t -> Node t
-shallowSimplify ot = if simplified ot
+shallowSimplify ot = if shallowSimplified ot
   then Branch ot else northeast . near $ ot
 
 -- | Widen a 'Leaf' into a 'Branch' of equal leaves.

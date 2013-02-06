@@ -35,23 +35,21 @@ instance Arbitrary a => Arbitrary (Operation a) where
 main = hspec $ do
   describe "path" $ do
     it "creates a simplified tree when inserting" . property $
-     \os v y -> case set (path os) (v :: Int) (Leaf y) of
-        Leaf a -> True
-        Branch b -> simplified b
+     \os v y -> simplified $ set (path os) (v :: Int) (Leaf y)
     it "always gives a value for leaves" . property $
       \os v -> Leaf (v :: Int) ^. path os == Just v
     it "follows the first lens law" . property $
       \os v t -> (t & path os .~ v)^.path os == Just (v :: Int)
     it "follows the second lens law" . property $ do
       -- Only guaranteed for simplified trees.
-      t <- Branch <$> arbitrary `suchThat` simplified
+      t <- arbitrary `suchThat` simplified
       os <- arbitrary
       return $ case t^.path os of
         Nothing -> True
         Just v -> (t & path os .~ v) == (t :: Node Int)
     it "follows the third lens law" . property $ do 
        -- Only guaranteed for simplified trees.
-       t <- Branch <$> arbitrary `suchThat` simplified
+       t <- arbitrary `suchThat` simplified
        os <- arbitrary
        v1 <- arbitrary :: Gen Int
        v2 <- arbitrary
