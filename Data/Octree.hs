@@ -1,5 +1,5 @@
 module Data.Octree
   ( Quadrant (..)
   , Octant (..)
-  , Octree (Leaf) )
+  , Octree (Leaf) ) where
 import Data.Octree.Internal
