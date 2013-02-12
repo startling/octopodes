@@ -60,7 +60,7 @@ leaves :: (Eq b, Applicative f) =>
   (a -> f b) -> Octree a -> f (Octree b)
 leaves = nodes <*> leaves
 
--- | Create a lens on a single element of some @'Octree' a@ out of a
+-- | Create a lens on a child of some @'Octree' a@ out of a
 -- list of 'Octant's.
 --
 -- This lens takes care to narrow the resulting octree; it may not be
