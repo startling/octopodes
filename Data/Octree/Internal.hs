@@ -84,6 +84,7 @@ path (o : os) f b = fmap narrow . octant o (path os f) . widen $ b where
   octant  (Far Northwest) f o = (\x -> o { farnw = x }) <$> f (farnw o)
   octant  (Far Southeast) f o = (\x -> o { farse = x }) <$> f (farse o)
   octant  (Far Southwest) f o = (\x -> o { farsw = x }) <$> f (farsw o)
+  -- TODO: factor this out
 
 -- reduce
 -- recreate
