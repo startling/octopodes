@@ -1,9 +1,7 @@
 {-# Language DeriveDataTypeable #-}
-{-# Language TemplateHaskell #-}
 module Data.Octree.Internal where
 -- base
 import Data.Foldable (Foldable(..))
-import Data.Traversable
 import Data.Typeable
 import Control.Applicative
 
