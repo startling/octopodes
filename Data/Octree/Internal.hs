@@ -25,27 +25,67 @@ data Operation a = Insert [Octant] a
 
 data Octree a
   = Leaf a
-  | Branch (Octree a) (Octree a) (Octree a) (Octree a)
-    (Octree a) (Octree a) (Octree a) (Octree a)
+  | Branch
+    { nearne, nearnw, nearse, nearsw
+    , farne, farnw, farse, farsw :: Octree a }
   deriving (Eq, Show, Ord, Typeable)
 
--- | A bitraversal over the leaves and the self-similar children
--- of some @'Octree' a@.
-nodes :: Applicative f => (a -> f b) ->
+-- | Narrow a branch into a leaf if all of its immediate children
+-- are equal leaves.
+narrow :: Eq a => Octree a -> Octree a
+narrow br@(Branch a b c d e f g h) = if all (\x -> isLeaf x && a == x)
+  [b, c, d, e, f, g, h] then a else br where
+    -- Tell if an octree is a leaf.
+    isLeaf (Leaf _) = True
+    isLeaf _ = False
+
+-- | A bitraversal over some @'Octree' a@: if it is just a leaf,
+-- the first argument is used; otherwise, the second is used on its
+-- immediate self-similar children.
+--
+-- This takes care to narrow the resulting octree; it may narrow some
+-- previously-unnarrowed octrees.
+nodes :: (Eq b, Applicative f) => (a -> f b) ->
   (Octree a -> f (Octree b)) -> Octree a -> f (Octree b)
 nodes fn _ (Leaf a) = Leaf <$> fn a
-nodes _ fn (Branch a b c d e f g h) = Branch <$> fn a <*> fn b
+nodes _ op (Branch a b c d e f g h) = Branch <$> fn a <*> fn b
   <*> fn c <*> fn d <*> fn e <*> fn f <*> fn g <*> fn h
+    where fn = fmap narrow . op
 
-instance Traversable Octree where
-  traverse = nodes <*> traverse
+-- | Traverse the leaves of some @'Octree' a@.
+--
+-- This takes care to narrow the resulting octree; it may narrow some
+-- previously-unnarrowed octrees.
+leaves :: (Eq b, Applicative f) =>
+  (a -> f b) -> Octree a -> f (Octree b)
+leaves = nodes <*> leaves
 
-instance Foldable Octree where
-  foldMap = foldMapDefault
+-- | Create a lens on a single element of some @'Octree' a@ out of a
+-- list of 'Octant's.
+--
+-- This lens takes care to narrow the resulting octree; it may not be
+-- a legal lens on some previously-unnarrowed octrees.
+path :: (Eq a, Functor f) => [Octant] ->
+  (Maybe a -> f a) -> Octree a -> f (Octree a)
+path [] f (Leaf l) = Leaf <$> f (Just l)
+path [] f _ = Leaf <$> f Nothing
+path (o : os) f b = fmap narrow . octant o (path os f) . widen $ b where
+  -- Widen a leaf into a branch with itself as its children.
+  widen a@(Leaf _) = Branch a a a a a a a a
+  widen b = b
+  -- Turn a single octant into a lens. N.B. this does not cover 'Leaf'
+  -- and so is not a total function, but we only use it on something that
+  -- has been widened beforehand.
+  octant :: Functor f => 
+    Octant -> (Octree a -> f (Octree a)) -> Octree a -> f (Octree a)
+  octant (Near Northeast) f o = (\x -> o { nearne = x }) <$> f (nearne o)
+  octant (Near Northwest) f o = (\x -> o { nearnw = x }) <$> f (nearnw o)
+  octant (Near Southeast) f o = (\x -> o { nearse = x }) <$> f (nearse o)
+  octant (Near Southwest) f o = (\x -> o { nearsw = x }) <$> f (nearsw o)
+  octant  (Far Northeast) f o = (\x -> o { farne = x }) <$> f (farne o)
+  octant  (Far Northwest) f o = (\x -> o { farnw = x }) <$> f (farnw o)
+  octant  (Far Southeast) f o = (\x -> o { farse = x }) <$> f (farse o)
+  octant  (Far Southwest) f o = (\x -> o { farsw = x }) <$> f (farsw o)
 
-instance Functor Octree where
-  fmap = fmapDefault
-
--- path
 -- reduce
 -- recreate
