@@ -4,6 +4,8 @@ module Data.Octree.Internal where
 import Data.Foldable (Foldable(..))
 import Data.Typeable
 import Control.Applicative
+-- mtl
+import Control.Monad.Writer
 
 -- | An enumerated types representing four directions.
 data Quadrant
@@ -63,11 +65,10 @@ leaves = nodes <*> leaves
 --
 -- This lens takes care to narrow the resulting octree; it may not be
 -- a legal lens on some previously-unnarrowed octrees.
-path :: (Eq a, Functor f) => [Octant] ->
-  (Maybe a -> f a) -> Octree a -> f (Octree a)
-path [] f (Leaf l) = Leaf <$> f (Just l)
-path [] f _ = Leaf <$> f Nothing
-path (o : os) f b = fmap narrow . octant o (path os f) . widen $ b where
+child :: (Eq a, Functor f) => [Octant] ->
+  (Octree a -> f (Octree a)) -> Octree a -> f (Octree a)
+child [] f t = f t
+child (o : os) f b = fmap narrow . octant o (child os f) . widen $ b where
   -- Widen a leaf into a branch with itself as its children.
   widen a@(Leaf _) = Branch a a a a a a a a
   widen b = b
