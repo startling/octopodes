@@ -29,15 +29,16 @@ data Octree a
     (Octree a) (Octree a) (Octree a) (Octree a)
   deriving (Eq, Show, Ord, Typeable)
 
--- | Traverse the self-similar children of some @'Octree' a@.
-children :: Applicative f =>
-  (Octree t -> f (Octree a)) -> Octree t -> f (Octree a)
-children fn (Branch a b c d e f g h) = Branch <$> fn a <*> fn b
+-- | A bitraversal over the leaves and the self-similar children
+-- of some @'Octree' a@.
+nodes :: Applicative f => (a -> f b) ->
+  (Octree a -> f (Octree b)) -> Octree a -> f (Octree b)
+nodes fn _ (Leaf a) = Leaf <$> fn a
+nodes _ fn (Branch a b c d e f g h) = Branch <$> fn a <*> fn b
   <*> fn c <*> fn d <*> fn e <*> fn f <*> fn g <*> fn h
 
 instance Traversable Octree where
-  traverse f (Leaf a) = Leaf <$> f a
-  traverse f b = children (traverse f) b
+  traverse = nodes <*> traverse
 
 instance Foldable Octree where
   foldMap = foldMapDefault
