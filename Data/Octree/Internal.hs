@@ -93,5 +93,12 @@ path :: (Eq a, Functor f) => [Octant] ->
   ([a] -> f a) -> Octree a -> f (Octree a)
 path os f = child os $ fmap Leaf . f . execWriter . leaves (tell . pure)
 
+-- | From a list of 'Octant's, create a lens examining the leaf value
+-- at that path and replacing it with a single value.
+path' :: (Eq a, Functor f) => [Octant] ->
+  (Maybe a -> f a) -> Octree a -> f (Octree a)
+path' os f = path os (f . head') where
+  head' [] = Nothing; head' (a : _) = Just a;
+
 -- reduce
 -- recreate
