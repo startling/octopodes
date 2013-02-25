@@ -1,5 +1,7 @@
 module Data.Octree
   ( Quadrant (..)
   , Octant (..)
-  , Octree (Leaf) ) where
+  , Octree (Leaf)
+  , path
+  , path' ) where
 import Data.Octree.Internal
