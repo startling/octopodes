@@ -87,5 +87,11 @@ child (o : os) f b = fmap narrow . octant o (child os f) . widen $ b where
   octant  (Far Southwest) f o = (\x -> o { farsw = x }) <$> f (farsw o)
   -- TODO: factor this out
 
+-- | From a list of 'Octant's create a lens examining all the leaves in
+-- some @'Octree' a@ and replacing them with a single value.
+path :: (Eq a, Functor f) => [Octant] ->
+  ([a] -> f a) -> Octree a -> f (Octree a)
+path os f = child os $ fmap Leaf . f . execWriter . leaves (tell . pure)
+
 -- reduce
 -- recreate
