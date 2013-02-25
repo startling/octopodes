@@ -6,14 +6,8 @@ import Data.Typeable
 import Control.Applicative
 -- mtl
 import Control.Monad.Writer
-
--- | An enumerated types representing four directions.
-data Quadrant
-  = Northeast
-  | Northwest
-  | Southeast
-  | Southwest
-  deriving (Eq, Show, Ord, Typeable)
+-- octopodes
+import Data.Quadtree (Quadrant)
 
 -- | An enumerated type representing eight directions.
 data Octant = Near Quadrant | Far Quadrant
