@@ -23,12 +23,18 @@ data Octant = Near Quadrant | Far Quadrant
 data Operation a = Insert [Octant] a
   deriving (Eq, Show, Ord, Typeable)
 
-data Octree a
+data Octree a 
   = Leaf a
   | Branch
-    { nearne, nearnw, nearse, nearsw
-    , farne, farnw, farse, farsw :: Octree a }
-  deriving (Eq, Show, Ord, Typeable)
+  { nearne
+  , nearnw
+  , nearse
+  , nearsw
+  , farne
+  , farnw
+  , farse
+  , farsw :: Octree a 
+  } deriving (Eq, Show, Ord, Typeable)
 
 -- | Narrow a branch into a leaf if all of its immediate children
 -- are equal leaves.
@@ -56,7 +62,7 @@ nodes _ op (Branch a b c d e f g h) = Branch <$> fn a <*> fn b
 --
 -- This takes care to narrow the resulting octree; it may narrow some
 -- previously-unnarrowed octrees.
-leaves :: (Eq b, Applicative f) =>
+gleaves :: (Eq b, Applicative f) =>
   (a -> f b) -> Octree a -> f (Octree b)
 leaves = nodes <*> leaves
 
