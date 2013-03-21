@@ -8,7 +8,6 @@ import Test.Hspec
 -- pockets
 import Data.Octree
 import Data.Octree.Internal
-import Data.Octree.Internal.Types
 -- lens
 import Control.Lens hiding (elements)
 
