@@ -4,5 +4,4 @@ module Data.Octree
   , Octree (Leaf)
   , path
   , path' ) where
-import Data.Octree.Internal.Types
 import Data.Octree.Internal
