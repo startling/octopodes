@@ -4,4 +4,6 @@ module Data.Octree
   , Octree (Leaf)
   , path
   , path' ) where
+import Data.Quadtree (Quadrant)
 import Data.Octree.Internal
+
