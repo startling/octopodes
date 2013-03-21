@@ -1,40 +1,11 @@
-{-# Language DeriveDataTypeable #-}
 module Data.Octree.Internal where
 -- base
 import Data.Foldable (Foldable(..))
-import Data.Typeable
 import Control.Applicative
 -- mtl
 import Control.Monad.Writer
-
--- | An enumerated types representing four directions.
-data Quadrant
-  = Northeast
-  | Northwest
-  | Southeast
-  | Southwest
-  deriving (Eq, Show, Ord, Typeable)
-
--- | An enumerated type representing eight directions.
-data Octant = Near Quadrant | Far Quadrant
-  deriving (Eq, Show, Ord, Typeable)
-
--- | An @'Octree' a@ can be reduced to a list of insertions.
-data Operation a = Insert [Octant] a
-  deriving (Eq, Show, Ord, Typeable)
-
-data Octree a 
-  = Leaf a
-  | Branch
-  { nearne
-  , nearnw
-  , nearse
-  , nearsw
-  , farne
-  , farnw
-  , farse
-  , farsw :: Octree a 
-  } deriving (Eq, Show, Ord, Typeable)
+-- octopodes
+import Data.Octree.Internal.Types
 
 -- | Narrow a branch into a leaf if all of its immediate children
 -- are equal leaves.
@@ -62,7 +33,7 @@ nodes _ op (Branch a b c d e f g h) = Branch <$> fn a <*> fn b
 --
 -- This takes care to narrow the resulting octree; it may narrow some
 -- previously-unnarrowed octrees.
-gleaves :: (Eq b, Applicative f) =>
+leaves :: (Eq b, Applicative f) =>
   (a -> f b) -> Octree a -> f (Octree b)
 leaves = nodes <*> leaves
 
