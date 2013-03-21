@@ -6,6 +6,7 @@ import Control.Applicative
 import Control.Monad.Writer
 -- octopodes
 import Data.Octree.Internal.Types
+import Data.Octree.Internal.Lens
 
 -- | Narrow a branch into a leaf if all of its immediate children
 -- are equal leaves.
@@ -45,24 +46,14 @@ leaves = nodes <*> leaves
 child :: (Eq a, Functor f) => [Octant] ->
   (Octree a -> f (Octree a)) -> Octree a -> f (Octree a)
 child [] f t = f t
-child (o : os) f b = fmap narrow . octant o (child os f) . widen $ b where
+child (o : os) f b = fmap narrow . octant o e (child os f) . widen $ b where
   -- Widen a leaf into a branch with itself as its children.
   widen a@(Leaf _) = Branch a a a a a a a a
   widen b = b
-  -- Turn a single octant into a lens. N.B. this does not cover 'Leaf'
-  -- and so is not a total function, but we only use it on something that
-  -- has been widened beforehand.
-  octant :: Functor f => 
-    Octant -> (Octree a -> f (Octree a)) -> Octree a -> f (Octree a)
-  octant (Near Northeast) f o = (\x -> o { nearne = x }) <$> f (nearne o)
-  octant (Near Northwest) f o = (\x -> o { nearnw = x }) <$> f (nearnw o)
-  octant (Near Southeast) f o = (\x -> o { nearse = x }) <$> f (nearse o)
-  octant (Near Southwest) f o = (\x -> o { nearsw = x }) <$> f (nearsw o)
-  octant  (Far Northeast) f o = (\x -> o { farne = x }) <$> f (farne o)
-  octant  (Far Northwest) f o = (\x -> o { farnw = x }) <$> f (farnw o)
-  octant  (Far Southeast) f o = (\x -> o { farse = x }) <$> f (farse o)
-  octant  (Far Southwest) f o = (\x -> o { farsw = x }) <$> f (farsw o)
-  -- TODO: factor this out
+  -- Since we know that  'widen' never produces a 'Leaf', we can stick
+  -- an illegal function into the first argument of the result of 'octant'.
+  e :: Functor f => a -> f a
+  e = error "Data.Octree.Internal.child broke an invariant."
 
 -- | From a list of 'Octant's create a lens examining all the leaves in
 -- some @'Octree' a@ and replacing them with a single value.
