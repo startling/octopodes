@@ -67,7 +67,7 @@ child (o : os) f b = fmap narrow . octant o (child os f) . widen $ b where
   widen a@(Leaf _) = Branch a a a a a a a a
   widen b = b
   -- Turn a single octant into a lens. N.B. this does not cover 'Leaf'
-  -- and so is not a total function, but we only use it on something that
+  -- and so is not a total function`, but we only use it on something that
   -- has been widened beforehand.
   octant :: Functor f => 
     Octant -> (Octree a -> f (Octree a)) -> Octree a -> f (Octree a)
