@@ -22,12 +22,6 @@ data Operation a = Insert [Octant] a
 data Octree a 
   = Leaf a
   | Branch
-  { nearne
-  , nearnw
-  , nearse
-  , nearsw
-  , farne
-  , farnw
-  , farse
-  , farsw :: Octree a 
+  { _nne, _nnw, _nse, _nsw
+  , _fne, _fnw, _fse, _fsw :: Octree a
   } deriving (Eq, Show, Ord, Typeable)
