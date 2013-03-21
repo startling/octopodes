@@ -7,7 +7,7 @@ import Control.Applicative
 -- mtl
 import Control.Monad.Writer
 -- octopodes
-import Data.Quadtree (Quadrant)
+import Data.Quadtree (Quadrant(..))
 
 -- | An enumerated type representing eight directions.
 data Octant = Near Quadrant | Far Quadrant
